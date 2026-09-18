@@ -12,17 +12,14 @@ import * as media from "./media.js";
 import * as mapmod from "./map.js";
 import { openStopSheet, openTransportSheet, pickFiles, openViewer } from "./stopEdit.js";
 import { sheet, toast, ok, err, esc, h, button, confirmSheet, busy } from "./ui.js";
-import { DEFAULT_AMAP_KEY } from "./config.js";
 import { exportTrip } from "./export.js";
 import { buildShareHtml } from "./share.js";
 
 const pageEl = document.getElementById("page");
 const titleEl = document.getElementById("title");
 
-// 首次启动写入默认 key
-if (!store.getSettings().amapKey && DEFAULT_AMAP_KEY) {
-  store.saveSettings({ amapKey: DEFAULT_AMAP_KEY });
-}
+// 不再往设置里写默认 key —— search.js 会自己回退到内置的。
+// 那样设置框保持空白（表示"用内置"），用户填了才覆盖，语义更清楚。
 
 // 供 viewer 回调删除素材
 window.__tnDeleteMedia = async (stopId, mediaId) => {
@@ -714,9 +711,10 @@ async function openSettings() {
   s.body.innerHTML = `
     <div class="field">
       <label>高德 Key（Web服务类型）</label>
-      <input class="input" id="k" placeholder="搜地名需要，底图不需要" autocomplete="off">
+      <input class="input" id="k" placeholder="留空就用内置的" autocomplete="off">
       <div class="hint">
-        只用来搜地名和反查地址。留空也能用应用：当前位置打点、地图点选、看地图都不需要 Key。
+        只用来搜地名和反查地址。<b>留空会用内置 Key，搜索照样能用</b>；
+        想换成自己的就填在这里。看地图、当前位置打点、地图点选都不需要 Key。
       </div>
     </div>
     <div class="field">

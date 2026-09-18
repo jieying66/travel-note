@@ -12,7 +12,7 @@
 
 // 改了任何 js/css 都要动这个版本号，否则用户浏览器一直用旧缓存，
 // 看不到新功能（很难察觉：文件在服务器上是新的，浏览器却不取）。
-const VERSION = "v3";
+const VERSION = "v4";
 const SHELL = `tn-shell-${VERSION}`;
 const TILES = `tn-tiles-${VERSION}`;
 

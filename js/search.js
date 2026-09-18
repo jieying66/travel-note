@@ -15,13 +15,22 @@
 import { gcj02ToWgs84 } from "./coord.js";
 import { guessStopType } from "./model.js";
 import { getSettings } from "./store.js";
+import { DEFAULT_AMAP_KEY } from "./config.js";
 
-export function hasKey() {
-  return !!(getSettings().amapKey || "").trim();
+/**
+ * 取 key：优先用户在设置里填的，否则回退到内置的。
+ *
+ * 为什么不只读设置：内置 key 原来只在首次启动时写进设置，
+ * 一旦用户清了浏览器数据或换了设备，设置为空就再也搜不了地名，
+ * 而且界面只说"未配置"，很难看出是这个原因。
+ */
+function key() {
+  const saved = (getSettings().amapKey || "").trim();
+  return saved || (DEFAULT_AMAP_KEY || "").trim();
 }
 
-function key() {
-  return (getSettings().amapKey || "").trim();
+export function hasKey() {
+  return !!key();
 }
 
 /**
