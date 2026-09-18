@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1">
+<meta name="theme-color" content="#faf7f2">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>旅行记</title>
+<link rel="manifest" href="manifest.json">
+<link rel="stylesheet" href="vendor/leaflet.css">
+<link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+
+<div class="app" id="app">
+  <div class="topbar">
+    <div class="topbar-inner">
+      <h1 id="title">旅行记</h1>
+      <button class="btn-icon" id="btn-settings" aria-label="设置">⚙</button>
+    </div>
+  </div>
+  <div class="page" id="page"></div>
+</div>
+
+<script src="vendor/leaflet.js"></script>
+<script src="vendor/jszip.min.js"></script>
+<script type="module" src="js/app.js"></script>
+<script>
+// 离线缓存。只在 https 或 localhost 下生效（浏览器限制）。
+//
+// 关键：新版本装好后要自动接管并刷新一次。
+// 否则旧 Service Worker 会一直提供旧代码，用户看不到更新 ——
+// 服务器上文件是新的，浏览器却不取，这种问题很难自己发现。
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", async () => {
+    try {
+      const reg = await navigator.serviceWorker.register("sw.js");
+
+      // 每次打开都问一次服务器有没有新版本
+      reg.update?.().catch(() => {});
+
+      // 新版本装好了（且此前已有旧版本在跑）→ 让它立刻接管
+      reg.addEventListener("updatefound", () => {
+        const sw = reg.installing;
+        if (!sw) return;
+        sw.addEventListener("statechange", () => {
+          if (sw.state === "installed" && navigator.serviceWorker.controller) {
+            sw.postMessage({ type: "SKIP_WAITING" });
+          }
+        });
+      });
+
+      // 接管完成后刷新一次，拿到新代码。加锁避免无限刷新。
+      let reloaded = false;
+      navigator.serviceWorker.addEventListener("controllerchange", () => {
+        if (reloaded) return;
+        reloaded = true;
+        location.reload();
+      });
+
+      // 请 SW 清掉旧版本缓存。放在这里而不是只靠 activate ——
+      // SW 已在运行时 activate 不会再触发，旧缓存会一直占着空间。
+      navigator.serviceWorker.ready.then((r) => {
+        r.active?.postMessage({ type: "CLEAN_CACHES" });
+      });
+    } catch {}
+  });
+}
+</script>
+</body>
+</html>
